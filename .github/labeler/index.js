@@ -11,23 +11,32 @@ async function run() {
   });
 
   const issueBodyLines = issue.data.body.split('\n');
-
   const labels = [];
+  
+  // Handle multiple software values
+  if (issueBodyLines[0] === '### Software') {
+    const softwareLines = issueBodyLines[2].split(','); // assuming comma-separated values
+    softwareLines.forEach(software => {
+      labels.push(`app:${software.trim().toLowerCase()}`);
+    });
+  }
 
-  let software;
-  if (issueBodyLines[0] === '### Software') software = issueBodyLines[2].toLowerCase();
-  if (software) labels.push(`app:${software}`);
+  // Handle multiple OS values
+  if (issueBodyLines[4] === '### Operating System') {
+    const osLines = issueBodyLines[6].split(','); // assuming comma-separated values
+    osLines.forEach(os => {
+      labels.push(`os:${os.trim().toLowerCase()}`);
+    });
+  }
 
-  let os;
-  if (issueBodyLines[4] === '### Operating System') os = issueBodyLines[6].toLowerCase();
-  if (os) labels.push(`os:${os}`);
-
-  if (labels.length) await octokit.issues.addLabels({
-    owner: 'pieces-app',
-    repo: 'support',
-    issue_number,
-    labels
-  });
+  if (labels.length) {
+    await octokit.issues.addLabels({
+      owner: 'pieces-app',
+      repo: 'support',
+      issue_number,
+      labels
+    });
+  }
 }
 
 run().catch(err => console.error(err));
